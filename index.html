@@ -20,8 +20,8 @@
     <div id="status">Loading model...</div>
 
     <!-- Load TensorFlow.js and Teachable Machine -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/teachablemachine"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.8.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/teachablemachine-image@0.8/dist/teachablemachine-image.min.js"></script>
 
     <script>
         // Slot Machine Logic
@@ -51,7 +51,7 @@
         async function init() {
             // Load your model
             const modelURL = 'https://teachablemachine.withgoogle.com/models/72oWK2mJ3/model.json';
-            model = await tmImage.load(modelURL, { version: 1, alpha: 0.5 });
+            model = await tmImage.load(modelURL);
 
             // Setup webcam
             webcam = new tmImage.Webcam(224, 224, true);
