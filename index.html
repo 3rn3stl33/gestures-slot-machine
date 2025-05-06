@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gesture-Controlled Slot Machine</title>
+    <style>
+        body { display: flex; justify-content: center; align-items: center; flex-direction: column; }
+        #webcam { transform: scaleX(-1); margin: 20px; }
+        .slot-machine { font-size: 40px; margin: 20px; }
+        .reel { display: inline-block; width: 80px; height: 80px; border: 2px solid #000; text-align: center; line-height: 80px; margin: 5px; }
+        #status { color: red; }
+    </style>
+</head>
+<body>
+    <video id="webcam" autoplay></video>
+    <div class="slot-machine">
+        <div class="reel" id="reel1">?</div>
+        <div class="reel" id="reel2">?</div>
+        <div class="reel" id="reel3">?</div>
+    </div>
+    <div id="status">Loading model...</div>
+
+    <!-- Load TensorFlow.js and Teachable Machine -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/teachablemachine"></script>
+
+    <script>
+        // Slot Machine Logic
+        const symbols = ['🍒', '🍊', '🍋', '⭐', '7'];
+        let isSpinning = false;
+
+        function spin() {
+            if (isSpinning) return;
+            isSpinning = true;
+            
+            // Animate reels
+            for (let i = 1; i <= 3; i++) {
+                const reel = document.getElementById(`reel${i}`);
+                let spins = 0;
+                const animate = () => {
+                    reel.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                    if (spins++ < 10) requestAnimationFrame(animate);
+                    else isSpinning = false;
+                };
+                requestAnimationFrame(animate);
+            }
+        }
+
+        // Teachable Machine Integration
+        let model, webcam;
+
+        async function init() {
+            // Load your model
+            const modelURL = 'https://teachablemachine.withgoogle.com/models/72oWK2mJ3/model.json';
+            model = await tmImage.load(modelURL, { version: 1, alpha: 0.5 });
+
+            // Setup webcam
+            webcam = new tmImage.Webcam(224, 224, true);
+            await webcam.setup();
+            await webcam.play();
+            document.getElementById('webcam').appendChild(webcam.canvas);
+
+            // Start prediction loop
+            setInterval(predict, 200);
+            document.getElementById('status').textContent = 'Model loaded! Punch to spin!';
+        }
+
+        async function predict() {
+            if (!model || !webcam) return;
+            
+            // Get prediction
+            const prediction = await model.predict(webcam.canvas);
+            const punchClass = prediction.find(p => p.className === 'Punch');
+            
+            // Trigger spin if punch detected (confidence > 90%)
+            if (punchClass.probability > 0.9) {
+                spin();
+            }
+        }
+
+        // Initialize
+        init();
+    </script>
+</body>
+</html>
